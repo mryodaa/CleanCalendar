@@ -11,6 +11,7 @@ import {
 import {ProductsContext} from '../contexts/ProductsContext';
 import {Product} from '../data/types';
 import {ThemeContext} from '../contexts/ThemeContext';
+import getFormattedPriceParts from '../utils/getFormattedPriceParts';
 
 const SellerHome = ({navigation}: any) => {
   const {products, removeProduct} = useContext(ProductsContext);
@@ -53,10 +54,7 @@ const SellerHome = ({navigation}: any) => {
             {item.name}
           </Text>
           <Text style={[styles.itemPrice, {color: colors.text}]}>
-            {new Intl.NumberFormat('ru-RU', {
-              style: 'currency',
-              currency: 'RUB',
-            }).format(item.price || 0)}
+            {getFormattedPriceParts(item.price, item.discount)}
           </Text>
         </View>
       </TouchableOpacity>

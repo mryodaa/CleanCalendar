@@ -3,6 +3,7 @@ import {View, Text, Image, Button, ScrollView, StyleSheet} from 'react-native';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {CartContext} from '../contexts/CartContext';
 import {ProductsContext} from '../contexts/ProductsContext';
+import getFormattedPriceParts from '../utils/getFormattedPriceParts';
 
 const ProductDetail = ({route}: any) => {
   const {product} = route.params;
@@ -33,13 +34,10 @@ const ProductDetail = ({route}: any) => {
           {existingProduct.name}
         </Text>
         <Text style={[styles.price, {color: colors.text}]}>
-          {existingProduct.price}₽
+          {getFormattedPriceParts(product.price, product.discount)}
         </Text>
         <Text style={[styles.stock, {color: colors.text}]}>
           На складе: {existingProduct.stock}
-        </Text>
-        <Text style={[styles.discount, {color: colors.text}]}>
-          Скидка: {existingProduct.discount}%
         </Text>
         <Button
           title="Добавить в корзину"

@@ -84,12 +84,14 @@ export const CartProvider = ({children}: CartProviderProps) => {
     );
   };
 
-  // Подсчитывает итоговую сумму товаров в корзине
+  // Подсчитывает итоговую сумму товаров в корзине с учетом скидки
   const getTotal = () => {
-    return cart.reduce(
-      (sum, item) => sum + (item.price || 0) * item.quantity,
-      0,
-    );
+    return cart.reduce((sum, item) => {
+      const discountedPrice = item.discount
+        ? item.price - (item.price * item.discount) / 100
+        : item.price;
+      return sum + (discountedPrice || 0) * item.quantity;
+    }, 0);
   };
 
   return (

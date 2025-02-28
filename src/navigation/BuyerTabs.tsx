@@ -1,4 +1,3 @@
-// BuyerTabs.tsx
 import React, {useContext} from 'react';
 import {
   createBottomTabNavigator,
@@ -6,7 +5,8 @@ import {
 } from '@react-navigation/bottom-tabs';
 import BuyerStack from './BuyerStack';
 import CartScreen from '../screens/CartScreen';
-import CatalogStack from './CatalogStack'; // если используете стек для категорий
+import CatalogStack from './CatalogStack';
+import DiscountedProductsScreen from '../screens/DiscountProductsScreen'; // Новый экран
 import {ThemeContext} from '../contexts/ThemeContext';
 import {CartContext} from '../contexts/CartContext';
 import {View, Text, StyleSheet} from 'react-native';
@@ -55,6 +55,8 @@ const BuyerTabs = () => {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Categories') {
             iconName = focused ? 'list' : 'list-outline';
+          } else if (route.name === 'Discounts') {
+            iconName = focused ? 'pricetag' : 'pricetag-outline';
           } else if (route.name === 'Cart') {
             iconName = focused ? 'cart' : 'cart-outline';
           }
@@ -69,8 +71,13 @@ const BuyerTabs = () => {
       />
       <Tab.Screen
         name="Categories"
-        component={CatalogStack} // или CatalogScreen, если без стека
+        component={CatalogStack}
         options={{title: 'Категории'}}
+      />
+      <Tab.Screen
+        name="Discounts"
+        component={DiscountedProductsScreen} // Добавленная вкладка
+        options={{title: 'Скидки'}}
       />
       <Tab.Screen
         name="Cart"

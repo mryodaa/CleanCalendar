@@ -12,6 +12,7 @@ import {ProductsContext} from '../contexts/ProductsContext';
 import {Product} from '../data/types';
 import {CartContext} from '../contexts/CartContext';
 import {ThemeContext} from '../contexts/ThemeContext';
+import getFormattedPriceParts from '../utils/getFormattedPriceParts';
 
 const BuyerHome = ({navigation}: any) => {
   const {products} = useContext(ProductsContext);
@@ -36,10 +37,7 @@ const BuyerHome = ({navigation}: any) => {
           {item.name}
         </Text>
         <Text style={[styles.cardPrice, {color: colors.text}]}>
-          {new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: 'RUB',
-          }).format(item.price || 0)}
+          {getFormattedPriceParts(item.price, item.discount)}
         </Text>
         <View style={styles.buttonContainer}>
           <Button

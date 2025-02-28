@@ -12,6 +12,7 @@ import {
 import {CartContext} from '../contexts/CartContext';
 import {CartItem} from '../data/types';
 import {ThemeContext} from '../contexts/ThemeContext';
+import getFormattedPriceParts from '../utils/getFormattedPriceParts';
 
 const CartScreen = ({navigation}: any) => {
   const {cart, removeFromCart, updateQuantity, getTotal} =
@@ -36,10 +37,7 @@ const CartScreen = ({navigation}: any) => {
           В наличии: {item.stock} шт.
         </Text>
         <Text style={[styles.priceText, {color: colors.text}]}>
-          {new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: 'RUB',
-          }).format(item.price || 0)}
+          {getFormattedPriceParts(item.price, item.discount)}
         </Text>
         <View style={styles.quantityContainer}>
           <Button
@@ -94,15 +92,6 @@ const CartScreen = ({navigation}: any) => {
             keyExtractor={(item, index) => `${item.id}-${index}`}
             renderItem={renderItem}
           />
-          <View style={styles.totalContainer}>
-            <Text style={[styles.totalText, {color: colors.text}]}>
-              Общая стоимость:{' '}
-              {new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: 'RUB',
-              }).format(getTotal())}
-            </Text>
-          </View>
         </>
       )}
     </View>
