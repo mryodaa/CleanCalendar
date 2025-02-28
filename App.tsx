@@ -13,6 +13,7 @@ import RoleSelectionScreen from './src/screens/RoleSelectionScreen';
 import BuyerTabs from './src/navigation/BuyerTabs';
 import SellerTabs from './src/navigation/SellerTabs';
 import ProductDetail from './src/screens/ProductDetail';
+import CheckoutScreen from './src/screens/CheckoutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +42,11 @@ const AppNavigator = () => {
           name="ProductDetail"
           component={ProductDetail}
           options={{title: 'Детали товара'}}
+        />
+        <Stack.Screen
+          name="Checkout"
+          component={CheckoutScreen}
+          options={{title: 'Оформление заказа'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

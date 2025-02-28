@@ -92,6 +92,20 @@ const CartScreen = ({navigation}: any) => {
             keyExtractor={(item, index) => `${item.id}-${index}`}
             renderItem={renderItem}
           />
+
+          {/* Фиксированная кнопка с суммой */}
+          <TouchableOpacity
+            style={[styles.checkoutButton, {backgroundColor: colors.button}]}
+            onPress={() => navigation.navigate('Checkout')}>
+            <Text style={[styles.checkoutText, {color: colors.buttonText}]}>
+              Оформить заказ (
+              {new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+              }).format(getTotal())}
+              )
+            </Text>
+          </TouchableOpacity>
         </>
       )}
     </View>
@@ -163,6 +177,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  checkoutButton: {},
+  checkoutText: {},
 });
 
 export default CartScreen;
