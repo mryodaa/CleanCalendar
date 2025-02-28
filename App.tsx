@@ -9,11 +9,13 @@ import {ThemeProvider, ThemeContext} from './src/contexts/ThemeContext';
 import {ProductsProvider} from './src/contexts/ProductsContext';
 import {CartProvider} from './src/contexts/CartContext';
 import {CategoriesProvider} from './src/contexts/CategoriesContext';
+import {AuthProvider} from './src/contexts/AuthContext';
 import RoleSelectionScreen from './src/screens/RoleSelectionScreen';
 import BuyerTabs from './src/navigation/BuyerTabs';
 import SellerTabs from './src/navigation/SellerTabs';
 import ProductDetail from './src/screens/ProductDetail';
-import CheckoutScreen from './src/screens/CheckoutScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,9 +46,14 @@ const AppNavigator = () => {
           options={{title: 'Детали товара'}}
         />
         <Stack.Screen
-          name="Checkout"
-          component={CheckoutScreen}
-          options={{title: 'Оформление заказа'}}
+          name="Login"
+          component={LoginScreen}
+          options={{title: 'Вход'}}
+        />
+        <Stack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{title: 'Регистрация'}}
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -55,15 +62,17 @@ const AppNavigator = () => {
 
 const App = () => {
   return (
-    <ThemeProvider>
-      <CategoriesProvider>
-        <ProductsProvider>
-          <CartProvider>
-            <AppNavigator />
-          </CartProvider>
-        </ProductsProvider>
-      </CategoriesProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <CategoriesProvider>
+          <ProductsProvider>
+            <CartProvider>
+              <AppNavigator />
+            </CartProvider>
+          </ProductsProvider>
+        </CategoriesProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 };
 

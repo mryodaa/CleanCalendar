@@ -1,9 +1,11 @@
 import React, {useContext} from 'react';
 import {View, Button, StyleSheet, Text} from 'react-native';
 import {ThemeContext} from '../contexts/ThemeContext';
+import {AuthContext} from '../contexts/AuthContext';
 
 const RoleSelectionScreen = ({navigation}: any) => {
   const {theme, toggleTheme, colors} = useContext(ThemeContext);
+  const {user} = useContext(AuthContext);
 
   return (
     <View style={[styles.container, {backgroundColor: colors.background}]}>
@@ -27,7 +29,11 @@ const RoleSelectionScreen = ({navigation}: any) => {
       <View style={styles.buttonWrapper}>
         <Button
           title="Войти как Продавец"
-          onPress={() => navigation.navigate('SellerFlow')}
+          onPress={() =>
+            user
+              ? navigation.navigate('SellerFlow')
+              : navigation.navigate('Login')
+          }
           color={colors.button}
         />
       </View>
@@ -42,15 +48,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  text: {
-    marginBottom: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  buttonWrapper: {
-    marginVertical: 8,
-    width: '80%',
-  },
+  text: {marginBottom: 20, fontSize: 16},
+  buttonWrapper: {marginVertical: 5, width: '80%'},
 });
 
 export default RoleSelectionScreen;
