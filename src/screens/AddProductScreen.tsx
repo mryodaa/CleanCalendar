@@ -21,14 +21,13 @@ const AddProductScreen = ({navigation}: any) => {
 
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
-  const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
   const [stock, setStock] = useState('');
   const [discount, setDiscount] = useState('');
+  const [description, setDescription] = useState('');
+  const [image, setImage] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
 
-  // При монтировании выбираем первую категорию и подкатегорию (если есть)
   useEffect(() => {
     if (categories.length > 0) {
       setSelectedCategory(categories[0].id);
@@ -38,7 +37,6 @@ const AddProductScreen = ({navigation}: any) => {
     }
   }, [categories]);
 
-  // Обновляем подкатегорию при изменении категории
   const onCategoryChange = (catId: string) => {
     setSelectedCategory(catId);
     const category = categories.find(c => c.id === catId);
@@ -57,14 +55,14 @@ const AddProductScreen = ({navigation}: any) => {
     if (
       !name ||
       isNaN(numericPrice) ||
+      numericPrice <= 0 ||
       isNaN(numericStock) ||
-      isNaN(numericDiscount)
+      numericStock < 0 ||
+      isNaN(numericDiscount) ||
+      numericDiscount < 0 ||
+      numericDiscount > 100
     ) {
       Alert.alert('Ошибка', 'Введите корректные значения для всех полей.');
-      return;
-    }
-    if (!selectedSubcategory && !selectedCategory) {
-      Alert.alert('Ошибка', 'Выберите категорию или подкатегорию.');
       return;
     }
 
@@ -76,14 +74,13 @@ const AddProductScreen = ({navigation}: any) => {
       discount: numericDiscount,
       description,
       image: image || 'https://via.placeholder.com/300',
-      categoryId: selectedSubcategory, // Используем подкатегорию, если есть
+      categoryId: selectedSubcategory || selectedCategory,
     };
 
-    addProduct(newProduct); // Добавляем товар через контекст
-    navigation.goBack(); // Возвращаемся назад
+    addProduct(newProduct);
+    navigation.goBack();
   };
 
-  // Получаем подкатегории для выбранной категории
   const selectedCat = categories.find(c => c.id === selectedCategory);
   const subcategories = selectedCat?.subcategories || [];
 
@@ -127,7 +124,12 @@ const AddProductScreen = ({navigation}: any) => {
         placeholder="Введите скидку"
         placeholderTextColor={colors.text}
         value={discount}
-        onChangeText={setDiscount}
+        onChangeText={text => {
+          const num = parseInt(text, 10);
+          if (!isNaN(num) && num >= 0 && num <= 100) {
+            setDiscount(text);
+          }
+        }}
         keyboardType="numeric"
       />
 
@@ -200,6 +202,7 @@ const AddProductScreen = ({navigation}: any) => {
           title="Добавить товар"
           onPress={handleAddProduct}
           color={colors.button}
+          disabled={!name || !price || !stock || isNaN(parseFloat(price))}
         />
       </View>
     </ScrollView>

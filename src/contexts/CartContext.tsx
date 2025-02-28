@@ -1,7 +1,7 @@
 import React, {createContext, useState, useEffect, ReactNode} from 'react';
 import {MMKV} from 'react-native-mmkv';
-
 import {Product, CartItem} from '../data/types';
+import {Alert} from 'react-native';
 
 // Инициализация MMKV
 const storage = new MMKV();
@@ -46,18 +46,22 @@ export const CartProvider = ({children}: CartProviderProps) => {
     storage.set('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Добавляет товар в корзину (или увеличивает количество)
+  // Добавляет товар в корзину (но не больше, чем есть в наличии)
   const addToCart = (product: Product) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
+        if (existing.quantity >= product.stock) {
+          Alert.alert('Ошибка: На складе недостаточно товара!');
+          return prev;
+        }
         return prev.map(item =>
           item.id === product.id
             ? {...item, quantity: item.quantity + 1}
             : item,
         );
       } else {
-        return [...prev, {...product, quantity: 1}];
+        return product.stock > 0 ? [...prev, {...product, quantity: 1}] : prev;
       }
     });
   };
@@ -67,14 +71,16 @@ export const CartProvider = ({children}: CartProviderProps) => {
     setCart(prev => prev.filter(item => item.id !== productId));
   };
 
-  // Обновляет количество товара (если 0, удаляет)
+  // Обновляет количество товара (не может превышать `stock`)
   const updateQuantity = (productId: string, quantity: number) => {
     setCart(prev =>
-      quantity <= 0
-        ? prev.filter(item => item.id !== productId)
-        : prev.map(item =>
-            item.id === productId ? {...item, quantity} : item,
-          ),
+      prev.map(item => {
+        if (item.id === productId) {
+          const maxQuantity = Math.min(quantity, item.stock);
+          return {...item, quantity: maxQuantity};
+        }
+        return item;
+      }),
     );
   };
 

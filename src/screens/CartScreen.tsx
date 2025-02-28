@@ -32,6 +32,9 @@ const CartScreen = ({navigation}: any) => {
       />
       <View style={styles.infoContainer}>
         <Text style={[styles.itemText, {color: colors.text}]}>{item.name}</Text>
+        <Text style={[styles.stockText, {color: colors.text}]}>
+          В наличии: {item.stock} шт.
+        </Text>
         <Text style={[styles.priceText, {color: colors.text}]}>
           {new Intl.NumberFormat('ru-RU', {
             style: 'currency',
@@ -55,7 +58,7 @@ const CartScreen = ({navigation}: any) => {
             value={item.quantity.toString()}
             onChangeText={text => {
               const num = parseInt(text, 10);
-              if (!isNaN(num) && num > 0) {
+              if (!isNaN(num) && num > 0 && num <= item.stock) {
                 updateQuantity(item.id, num);
               }
             }}
@@ -64,6 +67,7 @@ const CartScreen = ({navigation}: any) => {
             title="+"
             onPress={() => updateQuantity(item.id, item.quantity + 1)}
             color={colors.button}
+            disabled={item.quantity >= item.stock} // 🔹 Блокируем, если достигнут лимит
           />
         </View>
       </View>
@@ -129,6 +133,10 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 16,
+    marginBottom: 5,
+  },
+  stockText: {
+    fontSize: 14,
     marginBottom: 5,
   },
   priceText: {

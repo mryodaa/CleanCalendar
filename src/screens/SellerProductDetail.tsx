@@ -18,7 +18,7 @@ const SellerProductDetail = ({route, navigation}: any) => {
   const {products, updateProduct} = useContext(ProductsContext);
   const {colors} = useContext(ThemeContext);
 
-  // Получаем актуальные данные товара из контекста
+  // Получаем актуальные данные товара
   const product: Product = useMemo(
     () => products.find(p => p.id === initialProduct.id) || initialProduct,
     [products, initialProduct.id],
@@ -26,22 +26,43 @@ const SellerProductDetail = ({route, navigation}: any) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(product.name);
-  const [price, setPrice] = useState(
-    product.price ? product.price.toString() : '',
-  );
+  const [price, setPrice] = useState(product.price?.toString() || '');
+  const [stock, setStock] = useState(product.stock?.toString() || '0');
+  const [discount, setDiscount] = useState(product.discount?.toString() || '0');
   const [description, setDescription] = useState(product.description || '');
   const [image, setImage] = useState(product.image);
 
   const handleSave = () => {
     const numericPrice = parseFloat(price);
-    if (!name || isNaN(numericPrice)) {
+    const numericStock = parseInt(stock, 10);
+    const numericDiscount = parseInt(discount, 10);
+
+    if (!name || isNaN(numericPrice) || numericPrice < 0) {
       Alert.alert('Ошибка', 'Введите корректное название и цену.');
       return;
     }
+    if (isNaN(numericStock) || numericStock < 0) {
+      Alert.alert(
+        'Ошибка',
+        'Количество на складе не может быть отрицательным.',
+      );
+      return;
+    }
+    if (
+      isNaN(numericDiscount) ||
+      numericDiscount < 0 ||
+      numericDiscount > 100
+    ) {
+      Alert.alert('Ошибка', 'Скидка должна быть от 0 до 100%.');
+      return;
+    }
+
     updateProduct({
       ...product,
       name,
       price: numericPrice,
+      stock: numericStock,
+      discount: numericDiscount,
       description,
       image,
     });
@@ -65,6 +86,7 @@ const SellerProductDetail = ({route, navigation}: any) => {
             value={name}
             onChangeText={setName}
           />
+
           <Text style={[styles.label, {color: colors.text}]}>Цена товара:</Text>
           <TextInput
             style={[
@@ -75,6 +97,31 @@ const SellerProductDetail = ({route, navigation}: any) => {
             onChangeText={setPrice}
             keyboardType="numeric"
           />
+
+          <Text style={[styles.label, {color: colors.text}]}>
+            Количество на складе:
+          </Text>
+          <TextInput
+            style={[
+              styles.input,
+              {borderColor: colors.button, color: colors.text},
+            ]}
+            value={stock}
+            onChangeText={setStock}
+            keyboardType="numeric"
+          />
+
+          <Text style={[styles.label, {color: colors.text}]}>Скидка (%):</Text>
+          <TextInput
+            style={[
+              styles.input,
+              {borderColor: colors.button, color: colors.text},
+            ]}
+            value={discount}
+            onChangeText={setDiscount}
+            keyboardType="numeric"
+          />
+
           <Text style={[styles.label, {color: colors.text}]}>
             Описание товара:
           </Text>
@@ -88,6 +135,7 @@ const SellerProductDetail = ({route, navigation}: any) => {
             onChangeText={setDescription}
             multiline
           />
+
           <Text style={[styles.label, {color: colors.text}]}>
             Ссылка на изображение:
           </Text>
@@ -99,10 +147,12 @@ const SellerProductDetail = ({route, navigation}: any) => {
             value={image}
             onChangeText={setImage}
           />
+
           <Image
             source={{uri: image || 'https://via.placeholder.com/300'}}
             style={styles.previewImage}
           />
+
           <Button
             title="Сохранить"
             onPress={handleSave}
@@ -126,15 +176,18 @@ const SellerProductDetail = ({route, navigation}: any) => {
             {product.name}
           </Text>
           <Text style={[styles.price, {color: colors.text}]}>
-            Цена:{' '}
-            {new Intl.NumberFormat('ru-RU', {
-              style: 'currency',
-              currency: 'RUB',
-            }).format(product.price || 0)}
+            Цена: {product.price}₽
+          </Text>
+          <Text style={[styles.stock, {color: colors.text}]}>
+            На складе: {product.stock}
+          </Text>
+          <Text style={[styles.discount, {color: colors.text}]}>
+            Скидка: {product.discount}%
           </Text>
           <Text style={[styles.description, {color: colors.text}]}>
             {product.description || 'Описание отсутствует.'}
           </Text>
+
           <View style={styles.buttonContainer}>
             <Button
               title="Редактировать"
@@ -166,7 +219,17 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 18,
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  stock: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  discount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   description: {
     fontSize: 16,

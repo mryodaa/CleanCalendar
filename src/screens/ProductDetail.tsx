@@ -2,37 +2,50 @@ import React, {useContext} from 'react';
 import {View, Text, Image, Button, ScrollView, StyleSheet} from 'react-native';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {CartContext} from '../contexts/CartContext';
+import {ProductsContext} from '../contexts/ProductsContext';
 
 const ProductDetail = ({route}: any) => {
   const {product} = route.params;
+  const {products} = useContext(ProductsContext);
   const {colors} = useContext(ThemeContext);
   const {addToCart} = useContext(CartContext);
+
+  const existingProduct = products.find(p => p.id === product.id);
+  if (!existingProduct) {
+    return (
+      <View style={[styles.container, {backgroundColor: colors.background}]}>
+        <Text style={[styles.title, {color: colors.text}]}>Товар удален</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={[styles.container, {backgroundColor: colors.background}]}>
       <Image
-        source={{uri: product.image || 'https://via.placeholder.com/300'}}
+        source={{
+          uri: existingProduct.image || 'https://via.placeholder.com/300',
+        }}
         style={styles.image}
       />
       <View style={styles.content}>
-        <Text style={[styles.title, {color: colors.text}]}>{product.name}</Text>
+        <Text style={[styles.title, {color: colors.text}]}>
+          {existingProduct.name}
+        </Text>
         <Text style={[styles.price, {color: colors.text}]}>
-          {new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: 'RUB',
-          }).format(product.price || 0)}
+          {existingProduct.price}₽
         </Text>
-        <Text style={[styles.description, {color: colors.text}]}>
-          {product.description || 'Описание отсутствует.'}
+        <Text style={[styles.stock, {color: colors.text}]}>
+          На складе: {existingProduct.stock}
         </Text>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Добавить в корзину"
-            onPress={() => addToCart(product)}
-            color={colors.button}
-          />
-        </View>
+        <Text style={[styles.discount, {color: colors.text}]}>
+          Скидка: {existingProduct.discount}%
+        </Text>
+        <Button
+          title="Добавить в корзину"
+          onPress={() => addToCart(existingProduct)}
+          color={colors.button}
+        />
       </View>
     </ScrollView>
   );
@@ -69,6 +82,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignSelf: 'stretch',
   },
+  stock: {},
+  discount: {},
 });
 
 export default ProductDetail;
