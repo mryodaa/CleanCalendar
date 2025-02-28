@@ -1,14 +1,25 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
 import {AuthContext} from '../contexts/AuthContext';
 import {ThemeContext} from '../contexts/ThemeContext';
 
 const RegisterScreen = ({navigation}: any) => {
-  const {register} = useContext(AuthContext);
+  const {register, user} = useContext(AuthContext);
   const {colors} = useContext(ThemeContext);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      navigation.replace('SellerFlow'); // Если уже авторизован, сразу в SellerFlow
+    }
+  }, [user]);
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleRegister = () => {
     if (!username || !email || !password) {
@@ -16,9 +27,13 @@ const RegisterScreen = ({navigation}: any) => {
       return;
     }
 
+    if (!isValidEmail(email)) {
+      Alert.alert('Ошибка', 'Введите корректный email.');
+      return;
+    }
+
     if (register(username, email, password)) {
-      Alert.alert('Успех', 'Вы зарегистрированы, войдите.');
-      navigation.replace('Login');
+      navigation.replace('SellerFlow'); // После регистрации сразу заходим в систему
     } else {
       Alert.alert(
         'Ошибка',
@@ -32,7 +47,7 @@ const RegisterScreen = ({navigation}: any) => {
       <Text style={[styles.label, {color: colors.text}]}>Логин</Text>
       <TextInput
         placeholder="Введите логин"
-        placeholderTextColor={colors.text} // Теперь placeholder точно виден
+        placeholderTextColor={colors.text}
         value={username}
         onChangeText={setUsername}
         style={[styles.input, {borderColor: colors.button, color: colors.text}]}
@@ -74,7 +89,7 @@ const RegisterScreen = ({navigation}: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 20},
+  container: {flex: 1, padding: 20, justifyContent: 'center'},
   label: {fontSize: 16, marginBottom: 5},
   input: {
     borderWidth: 1,

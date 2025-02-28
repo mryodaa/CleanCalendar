@@ -48,7 +48,7 @@ const SellerTabs = ({navigation}: any) => {
       />
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen} // ✅ Теперь просто передаем компонент
+        component={SettingsScreen}
         options={{title: 'Настройки'}}
       />
     </Tab.Navigator>
