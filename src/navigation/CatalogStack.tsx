@@ -24,7 +24,14 @@ const CategoriesStack = () => {
         name="FilteredProducts"
         component={FilteredProductsScreen}
       />
-      <Stack.Screen name="ProductDetail" component={ProductDetail} />
+      <Stack.Screen
+        name="ProductDetail"
+        component={ProductDetail}
+        options={{
+          headerShown: true,
+          title: 'Детали товара',
+        }}
+      />
     </Stack.Navigator>
   );
 };

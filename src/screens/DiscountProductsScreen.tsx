@@ -10,6 +10,7 @@ import {
 import {ProductsContext} from '../contexts/ProductsContext';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {Product} from '../data/types';
+import getFormattedPriceParts from '../utils/getFormattedPriceParts';
 
 const DiscountedProductsScreen = ({navigation}: any) => {
   const {products} = useContext(ProductsContext);
@@ -40,19 +41,7 @@ const DiscountedProductsScreen = ({navigation}: any) => {
             {item.name}
           </Text>
           <View style={styles.priceContainer}>
-            <Text style={[styles.oldPrice, {color: colors.text}]}>
-              {new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: 'RUB',
-              }).format(item.price || 0)}
-            </Text>
-            <Text style={[styles.newPrice, {color: colors.text}]}>
-              {new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: 'RUB',
-              }).format(discountedPrice)}
-            </Text>
-            <Text style={styles.discountBadge}>-{item.discount}%</Text>
+            <Text>{getFormattedPriceParts(item.price, item.discount)}</Text>
           </View>
         </View>
       </TouchableOpacity>

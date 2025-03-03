@@ -16,6 +16,7 @@ import SellerTabs from './src/navigation/SellerTabs';
 import ProductDetail from './src/screens/ProductDetail';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import CheckoutScreen from './src/screens/CheckoutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,6 +55,11 @@ const AppNavigator = () => {
           name="Register"
           component={RegisterScreen}
           options={{title: 'Регистрация'}}
+        />
+        <Stack.Screen
+          name="Checkout"
+          component={CheckoutScreen}
+          options={{title: 'Оформление заказа'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

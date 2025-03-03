@@ -5,12 +5,14 @@ import BuyerHome from '../screens/BuyerHome';
 import ProductDetail from '../screens/ProductDetail';
 import SubcategoriesScreen from '../screens/SubcategoriesScreen';
 import FilteredProductsScreen from '../screens/FilteredProductsScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
 
 export type BuyerStackParamList = {
   BuyerHome: undefined;
   ProductDetail: {product: any};
   Subcategories: {category: any};
   FilteredProducts: {categoryId: string};
+  Checkout: undefined;
 };
 
 const Stack = createNativeStackNavigator<BuyerStackParamList>();
@@ -36,7 +38,9 @@ const BuyerStack = () => {
       <Stack.Screen
         name="ProductDetail"
         component={ProductDetail}
-        options={{title: 'Детали товара'}}
+        options={{
+          title: 'Детали товара',
+        }}
       />
     </Stack.Navigator>
   );

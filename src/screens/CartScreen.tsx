@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,24 @@ const CartScreen = ({navigation}: any) => {
   const {cart, removeFromCart, updateQuantity, getTotal} =
     useContext(CartContext);
   const {colors} = useContext(ThemeContext);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+
+  const handleQuantityChange = (id: string, text: string) => {
+    setInputValues(prev => ({...prev, [id]: text}));
+  };
+
+  const handleBlur = (id: string, maxStock: number) => {
+    let value = parseInt(inputValues[id] || '1', 10);
+
+    if (isNaN(value) || value <= 0) {
+      value = 1;
+    } else if (value > maxStock) {
+      value = maxStock;
+    }
+
+    updateQuantity(id, value);
+    setInputValues(prev => ({...prev, [id]: value.toString()}));
+  };
 
   const renderItem = ({item}: {item: CartItem}) => (
     <TouchableOpacity
@@ -36,9 +54,8 @@ const CartScreen = ({navigation}: any) => {
         <Text style={[styles.stockText, {color: colors.text}]}>
           В наличии: {item.stock} шт.
         </Text>
-        <Text style={[styles.priceText, {color: colors.text}]}>
-          {getFormattedPriceParts(item.price, item.discount)}
-        </Text>
+        {getFormattedPriceParts(item.price, item.discount)}
+
         <View style={styles.quantityContainer}>
           <Button
             title="-"
@@ -53,17 +70,15 @@ const CartScreen = ({navigation}: any) => {
               {color: colors.text, borderColor: colors.button},
             ]}
             keyboardType="numeric"
-            value={item.quantity.toString()}
-            onChangeText={text => {
-              const num = parseInt(text, 10);
-              if (!isNaN(num) && num > 0 && num <= item.stock) {
-                updateQuantity(item.id, num);
-              }
-            }}
+            value={inputValues[item.id] ?? item.quantity.toString()}
+            onChangeText={text => handleQuantityChange(item.id, text)}
+            onBlur={() => handleBlur(item.id, item.stock)}
           />
           <Button
             title="+"
-            onPress={() => updateQuantity(item.id, item.quantity + 1)}
+            onPress={() =>
+              updateQuantity(item.id, Math.min(item.quantity + 1, item.stock))
+            }
             color={colors.button}
             disabled={item.quantity >= item.stock} // 🔹 Блокируем, если достигнут лимит
           />
@@ -142,10 +157,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
   },
-  priceText: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -162,23 +173,21 @@ const styles = StyleSheet.create({
   removeContainer: {
     marginLeft: 10,
   },
-  totalContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    paddingTop: 10,
-  },
-  totalText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   emptyText: {
     fontSize: 18,
     textAlign: 'center',
     marginTop: 20,
   },
-  checkoutButton: {},
-  checkoutText: {},
+  checkoutButton: {
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 10,
+    borderRadius: 8,
+  },
+  checkoutText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default CartScreen;

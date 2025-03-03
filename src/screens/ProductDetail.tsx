@@ -1,11 +1,20 @@
 import React, {useContext} from 'react';
-import {View, Text, Image, Button, ScrollView, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  Button,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {CartContext} from '../contexts/CartContext';
 import {ProductsContext} from '../contexts/ProductsContext';
 import getFormattedPriceParts from '../utils/getFormattedPriceParts';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const ProductDetail = ({route}: any) => {
+const ProductDetail = ({route, navigation}: any) => {
   const {product} = route.params;
   const {products} = useContext(ProductsContext);
   const {colors} = useContext(ThemeContext);
@@ -34,7 +43,10 @@ const ProductDetail = ({route}: any) => {
           {existingProduct.name}
         </Text>
         <Text style={[styles.price, {color: colors.text}]}>
-          {getFormattedPriceParts(product.price, product.discount)}
+          {getFormattedPriceParts(
+            existingProduct.price,
+            existingProduct.discount,
+          )}
         </Text>
         <Text style={[styles.stock, {color: colors.text}]}>
           На складе: {existingProduct.stock}
@@ -52,6 +64,13 @@ const ProductDetail = ({route}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 10,
+    padding: 10,
   },
   image: {
     width: '100%',
@@ -72,16 +91,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 12,
   },
-  description: {
+  stock: {
     fontSize: 16,
-    lineHeight: 22,
-    marginBottom: 20,
+    marginBottom: 10,
   },
-  buttonContainer: {
-    alignSelf: 'stretch',
-  },
-  stock: {},
-  discount: {},
 });
 
 export default ProductDetail;
