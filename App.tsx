@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   NavigationContainer,
   DefaultTheme,
@@ -9,7 +9,7 @@ import {ThemeProvider, ThemeContext} from './src/contexts/ThemeContext';
 import {ProductsProvider} from './src/contexts/ProductsContext';
 import {CartProvider} from './src/contexts/CartContext';
 import {CategoriesProvider} from './src/contexts/CategoriesContext';
-import {AuthProvider} from './src/contexts/AuthContext';
+import {AuthProvider, AuthContext} from './src/contexts/AuthContext';
 import RoleSelectionScreen from './src/screens/RoleSelectionScreen';
 import BuyerTabs from './src/navigation/BuyerTabs';
 import SellerTabs from './src/navigation/SellerTabs';
@@ -19,55 +19,70 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import MainTabs from './src/navigation/MainTabs';
+import PinScreen from './src/screens/PinScreen';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const {theme} = React.useContext(ThemeContext);
+  const {theme} = useContext(ThemeContext);
+  const {user, isAuthorized} = useContext(AuthContext);
 
   return (
     <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack.Navigator initialRouteName="MainTabs">
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="RoleSelection"
-          component={RoleSelectionScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="BuyerFlow"
-          component={BuyerTabs}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="SellerFlow"
-          component={SellerTabs}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="ProductDetail"
-          component={ProductDetail}
-          options={{title: 'Детали товара'}}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{title: 'Вход'}}
-        />
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{title: 'Регистрация'}}
-        />
-        <Stack.Screen
-          name="Checkout"
-          component={CheckoutScreen}
-          options={{title: 'Оформление заказа'}}
-        />
+      <Stack.Navigator>
+        {!user ? (
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{title: 'Вход', headerShown: false}}
+            />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{title: 'Регистрация'}}
+            />
+          </>
+        ) : !isAuthorized ? (
+          <Stack.Screen
+            name="PinScreen"
+            component={PinScreen}
+            options={{headerShown: false}}
+          />
+        ) : (
+          <>
+            <Stack.Screen
+              name="MainTabs"
+              component={MainTabs}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="RoleSelection"
+              component={RoleSelectionScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="BuyerFlow"
+              component={BuyerTabs}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="SellerFlow"
+              component={SellerTabs}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="ProductDetail"
+              component={ProductDetail}
+              options={{title: 'Детали товара'}}
+            />
+            <Stack.Screen
+              name="Checkout"
+              component={CheckoutScreen}
+              options={{title: 'Оформление заказа'}}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

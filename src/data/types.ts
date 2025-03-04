@@ -47,6 +47,21 @@ export interface Card {
   type: 'debit' | 'credit';
 }
 
+export interface User {
+  id: string;
+  fullName: string;
+  username: string;
+  email: string;
+  accountNumber: string;
+  balance: number;
+  currency: 'KZT';
+  cards: Card[];
+  login: string;
+  password: string;
+  pin: string;
+  isAuthorized: boolean;
+}
+
 export interface Banner {
   id: string;
   image: string;
@@ -54,15 +69,4 @@ export interface Banner {
   description: string;
   actionText: string;
   link: string;
-}
-
-export interface User {
-  id: string;
-  fullName: string;
-  accountNumber: string;
-  balance: number;
-  currency: 'KZT';
-  cards: Card[];
-  login: string;
-  password: string;
 }

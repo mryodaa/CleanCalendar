@@ -1,25 +1,24 @@
-import React, {createContext, useState, useEffect, ReactNode} from 'react';
-import {MMKV} from 'react-native-mmkv';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { MMKV } from 'react-native-mmkv';
+import { users } from '../data/users'; // Подключаем массив пользователей
+import { User } from '../data/types';
 
 // Хранилище для кэша пользователя
 const storage = new MMKV();
 
-interface User {
-  username: string;
-  email: string;
-}
-
 interface AuthContextProps {
   user: User | null;
+  isAuthorized: boolean;
   login: (identifier: string, password: string) => boolean;
-  register: (username: string, email: string, password: string) => boolean;
+  verifyPin: (pin: string) => boolean;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextProps>({
   user: null,
+  isAuthorized: false,
   login: () => false,
-  register: () => false,
+  verifyPin: () => false,
   logout: () => {},
 });
 
@@ -27,72 +26,55 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider = ({children}: AuthProviderProps) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false); // Проверка по PIN-коду
 
   useEffect(() => {
     // Проверяем, был ли пользователь ранее авторизован
     const storedUser = storage.getString('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser: User = JSON.parse(storedUser);
+      setUser(parsedUser);
+      setIsAuthorized(false); // После перезапуска приложения требуем ввод PIN
     }
   }, []);
 
+  // Логин по логину или email + пароль
   const login = (identifier: string, password: string) => {
-    const storedUsers = storage.getString('users');
-    const users = storedUsers ? JSON.parse(storedUsers) : [];
-
     const foundUser = users.find(
-      (u: {username: string; email: string; password: string}) =>
-        (u.username === identifier || u.email === identifier) &&
-        u.password === password,
+      (u) =>
+        (u.login === identifier || u.email === identifier) &&
+        u.password === password
     );
 
     if (foundUser) {
-      const loggedInUser = {
-        username: foundUser.username,
-        email: foundUser.email,
-      };
-      setUser(loggedInUser);
-      storage.set('user', JSON.stringify(loggedInUser)); // Запоминаем вход
+      setUser(foundUser);
+      setIsAuthorized(false); // После логина требуется верификация PIN-кодом
+      storage.set('user', JSON.stringify(foundUser)); // Запоминаем пользователя
       return true;
     }
     return false;
   };
 
-  const register = (username: string, email: string, password: string) => {
-    const storedUsers = storage.getString('users');
-    const users = storedUsers ? JSON.parse(storedUsers) : [];
-
-    if (
-      users.some(
-        (u: {username: string; email: string}) =>
-          u.username === username || u.email === email,
-      )
-    ) {
-      return false; // Ошибка: пользователь уже существует
+  // Верификация PIN-кодом
+  const verifyPin = (pin: string) => {
+    if (user && user.pin === pin) {
+      setIsAuthorized(true); // Разрешаем доступ к личным данным
+      return true;
     }
-
-    const newUser = {username, email, password};
-    const updatedUsers = [...users, newUser];
-
-    storage.set('users', JSON.stringify(updatedUsers));
-
-    // Автоматический вход после регистрации
-    const loggedInUser = {username, email};
-    setUser(loggedInUser);
-    storage.set('user', JSON.stringify(loggedInUser));
-
-    return true;
+    return false;
   };
 
+  // Выход из аккаунта
   const logout = () => {
     setUser(null);
+    setIsAuthorized(false);
     storage.delete('user'); // Удаляем данные пользователя при выходе
   };
 
   return (
-    <AuthContext.Provider value={{user, login, register, logout}}>
+    <AuthContext.Provider value={{ user, isAuthorized, login, verifyPin, logout }}>
       {children}
     </AuthContext.Provider>
   );
