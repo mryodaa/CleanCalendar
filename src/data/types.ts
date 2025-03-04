@@ -1,3 +1,4 @@
+// PRODUCTS
 export interface Product {
   id: string;
   name: string;
@@ -28,6 +29,7 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+// THEME
 export type ThemeType = 'light' | 'dark';
 
 export interface ThemeColors {
@@ -35,4 +37,32 @@ export interface ThemeColors {
   text: string;
   button: string;
   buttonText: string;
+}
+
+// BANK
+export interface Card {
+  cardNumber: string;
+  cvv: string;
+  expiry: string;
+  type: 'debit' | 'credit';
+}
+
+export interface Banner {
+  id: string;
+  image: string;
+  title: string;
+  description: string;
+  actionText: string;
+  link: string;
+}
+
+export interface User {
+  id: string;
+  fullName: string;
+  accountNumber: string;
+  balance: number;
+  currency: 'KZT';
+  cards: Card[];
+  login: string;
+  password: string;
 }

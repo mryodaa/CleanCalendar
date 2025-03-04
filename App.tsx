@@ -17,6 +17,8 @@ import ProductDetail from './src/screens/ProductDetail';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import MainTabs from './src/navigation/MainTabs';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,7 +27,12 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack.Navigator initialRouteName="RoleSelection">
+      <Stack.Navigator initialRouteName="MainTabs">
+        <Stack.Screen
+          name="MainTabs"
+          component={MainTabs}
+          options={{headerShown: false}}
+        />
         <Stack.Screen
           name="RoleSelection"
           component={RoleSelectionScreen}
