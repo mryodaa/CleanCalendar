@@ -1,4 +1,4 @@
-import React, {useState, useContext, useRef} from 'react';
+import React, {useState, useContext, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,59 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import ReactNativeBiometrics from 'react-native-biometrics';
 import {AuthContext} from '../contexts/AuthContext';
 import {ThemeContext} from '../contexts/ThemeContext';
+import {CommonActions} from '@react-navigation/native';
 
 const PinScreen = ({navigation}: any) => {
-  const {verifyPin} = useContext(AuthContext);
+  const {verifyPin, user, isAuthorized} = useContext(AuthContext);
   const {colors} = useContext(ThemeContext);
-
   const [pin, setPin] = useState(['', '', '', '']);
   const inputsRef = useRef<(TextInput | null)[]>([]);
+  const rnBiometrics = new ReactNativeBiometrics();
+
+  useEffect(() => {
+    checkBiometricAvailability();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthorized) {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'MainTabs'}],
+      });
+    }
+  }, [isAuthorized, navigation]);
+
+  const checkBiometricAvailability = async () => {
+    const {available} = await rnBiometrics.isSensorAvailable();
+    if (available) {
+      handleBiometricAuth();
+    }
+  };
+
+  const handleBiometricAuth = async () => {
+    const {available} = await rnBiometrics.isSensorAvailable();
+    console.log('Поддержка биометрии:', available);
+
+    if (!available) {
+      Alert.alert('Ошибка', 'Биометрическая аутентификация не поддерживается');
+      return;
+    }
+
+    const {success} = await rnBiometrics.simplePrompt({
+      promptMessage: 'Подтвердите вход биометрией',
+    });
+
+    if (success) {
+      if (user) {
+        verifyPin(user.pin);
+      }
+    } else {
+      Alert.alert('Ошибка', 'Биометрическая аутентификация не удалась');
+    }
+  };
 
   const handleChange = (text: string, index: number) => {
     if (/^\d$/.test(text)) {
@@ -43,9 +87,7 @@ const PinScreen = ({navigation}: any) => {
 
   const handleSubmit = (enteredPin: string) => {
     if (enteredPin.length === 4) {
-      if (verifyPin(enteredPin)) {
-        navigation.replace('MainTabs');
-      } else {
+      if (!verifyPin(enteredPin)) {
         Alert.alert('Ошибка', 'Неверный PIN-код');
         setPin(['', '', '', '']);
         inputsRef.current[0]?.focus();
@@ -61,7 +103,7 @@ const PinScreen = ({navigation}: any) => {
           <TextInput
             key={index}
             ref={ref => {
-              inputsRef.current[index] = ref; // Присваиваем ref без возврата
+              inputsRef.current[index] = ref;
             }}
             style={[
               styles.pinInput,
@@ -89,6 +131,13 @@ const PinScreen = ({navigation}: any) => {
         onPress={() => handleSubmit(pin.join(''))}
         disabled={!pin.every(d => d)}>
         <Text style={styles.submitText}>Войти</Text>
+      </TouchableOpacity>
+
+      {/* 🔹 Кнопка биометрии */}
+      <TouchableOpacity
+        style={[styles.biometricButton, {backgroundColor: colors.button}]}
+        onPress={handleBiometricAuth}>
+        <Text style={styles.submitText}>🔒 Войти по биометрии</Text>
       </TouchableOpacity>
     </View>
   );
@@ -118,6 +167,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   submitText: {color: '#fff', fontSize: 18, fontWeight: 'bold'},
+  biometricButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    marginTop: 10,
+  },
 });
 
 export default PinScreen;

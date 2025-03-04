@@ -50,6 +50,9 @@ export interface Card {
 export interface User {
   id: string;
   fullName: string;
+  name: string;
+  surname: string;
+  patronymic: string;
   username: string;
   email: string;
   accountNumber: string;

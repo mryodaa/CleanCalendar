@@ -20,10 +20,7 @@ const HomeScreen = () => {
   return (
     <ScrollView
       style={[styles.container, {backgroundColor: colors.background}]}>
-      {/* 📌 Баннеры */}
       <BannerSlider />
-
-      {/* 📌 Приветствие */}
       <View style={styles.greetingContainer}>
         <Text style={[styles.greetingText, {color: colors.text}]}>
           {user ? `Здравствуйте, ${user.username}!` : 'Здравствуйте!'}
@@ -33,7 +30,6 @@ const HomeScreen = () => {
         </Text>
       </View>
 
-      {/* 📌 Основные функции */}
       <View style={styles.servicesContainer}>
         <TouchableOpacity style={styles.serviceButton}>
           <Icon name="swap-horizontal" size={24} color="#fff" />
@@ -43,13 +39,14 @@ const HomeScreen = () => {
           <Icon name="cash-outline" size={24} color="#fff" />
           <Text style={styles.serviceText}>Платежи</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.serviceButton}>
+        <TouchableOpacity
+          style={styles.serviceButton}
+          onPress={() => navigation.navigate('RoleSelection' as never)}>
           <Icon name="cart-outline" size={24} color="#fff" />
           <Text style={styles.serviceText}>Магазин</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 📌 Популярные услуги */}
       <Text style={[styles.sectionTitle, {color: colors.text}]}>
         Популярные услуги
       </Text>
