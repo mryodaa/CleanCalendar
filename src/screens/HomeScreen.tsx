@@ -23,7 +23,7 @@ const HomeScreen = () => {
       <BannerSlider />
       <View style={styles.greetingContainer}>
         <Text style={[styles.greetingText, {color: colors.text}]}>
-          {user ? `Здравствуйте, ${user.username}!` : 'Здравствуйте!'}
+          {user ? `Здравствуйте, ${user.name}!` : 'Здравствуйте!'}
         </Text>
         <Text style={[styles.subtitle, {color: colors.text}]}>
           Добро пожаловать в наш банк

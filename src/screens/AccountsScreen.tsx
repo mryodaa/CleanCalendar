@@ -1,4 +1,4 @@
-import React, {useState, useContext, useRef} from 'react';
+import React, {useState, useContext, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   Dimensions,
   ViewToken,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {AuthContext} from '../contexts/AuthContext';
 import {ThemeContext} from '../contexts/ThemeContext';
 import OperationsPanel from '../components/OperationsPanel';
 
-const {width} = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 const CARD_WIDTH = width * 0.8;
 const CARD_MARGIN = 10;
 const CARD_SPACING = CARD_WIDTH + CARD_MARGIN * 2;
@@ -63,6 +65,10 @@ const CardItem = ({card, index}: CardItemProps) => {
         <Text style={styles.cardNumber}>
           {formatCardNumber(card.cardNumber)}
         </Text>
+        {/* Отображение баланса карты */}
+        <Text style={styles.cardBalance}>
+          Баланс: {card.balance.toLocaleString('ru-RU')} ₸
+        </Text>
         <View style={styles.cardFooter}>
           <View>
             <Text style={styles.label}>Срок</Text>
@@ -82,7 +88,8 @@ const AccountsScreen = () => {
   const {user} = useContext(AuthContext);
   const {theme, colors} = useContext(ThemeContext);
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showCardDetails, setShowCardDetails] = useState(false);
+  const [showAccountDetails, setShowAccountDetails] = useState(false);
 
   const onViewRef = useRef(({viewableItems}: {viewableItems: ViewToken[]}) => {
     if (viewableItems && viewableItems.length > 0) {
@@ -90,6 +97,26 @@ const AccountsScreen = () => {
     }
   });
   const viewConfigRef = useRef({viewAreaCoveragePercentThreshold: 50});
+
+  // Animated values для модальных окон
+  const cardModalAnim = useRef(new Animated.Value(height)).current;
+  const accountModalAnim = useRef(new Animated.Value(height)).current;
+
+  useEffect(() => {
+    Animated.timing(cardModalAnim, {
+      toValue: showCardDetails ? 0 : height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showCardDetails, cardModalAnim]);
+
+  useEffect(() => {
+    Animated.timing(accountModalAnim, {
+      toValue: showAccountDetails ? 0 : height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showAccountDetails, accountModalAnim]);
 
   if (!user) {
     return (
@@ -107,9 +134,11 @@ const AccountsScreen = () => {
 
   const selectedCard = user.cards[selectedCardIndex];
 
-  // Если тема темная, переопределим стили для деталей:
+  // Для деталей используем белый фон в темной теме для контраста
+  const detailsCardBackground = theme === 'dark' ? '#333' : colors.background;
+  const detailsAccountBackground =
+    theme === 'dark' ? '#333' : colors.background;
   const detailsTextColor = theme === 'dark' ? '#fff' : colors.text;
-  const detailsBackground = theme === 'dark' ? '#333' : '#fff'; // можно менять, если нужно
 
   return (
     <SafeAreaView
@@ -128,48 +157,106 @@ const AccountsScreen = () => {
         contentContainerStyle={{paddingHorizontal: (width - CARD_WIDTH) / 2}}
       />
       <OperationsPanel
-        showDetails={showDetails}
-        toggleDetails={() => setShowDetails(prev => !prev)}
+        showDetails={showCardDetails}
+        toggleDetails={() => setShowCardDetails(prev => !prev)}
+        showAccountDetails={showAccountDetails}
+        toggleAccountDetails={() => setShowAccountDetails(prev => !prev)}
       />
-      {showDetails && (
-        <View
-          style={[
-            styles.detailsContainer,
-            {backgroundColor: detailsBackground},
-          ]}>
-          <Text style={[styles.detailsTitle, {color: detailsTextColor}]}>
-            Реквизиты карты
-          </Text>
-          <Text style={[styles.detailLabel, {color: detailsTextColor}]}>
-            Номер карты:
-          </Text>
-          <Text style={[styles.detailText, {color: detailsTextColor}]}>
-            {selectedCard.cardNumber}
-          </Text>
-          <Text style={[styles.detailLabel, {color: detailsTextColor}]}>
-            Срок действия:
-          </Text>
-          <Text style={[styles.detailText, {color: detailsTextColor}]}>
-            {selectedCard.expiry}
-          </Text>
-          <Text style={[styles.detailLabel, {color: detailsTextColor}]}>
-            Тип карты:
-          </Text>
-          <Text style={[styles.detailText, {color: detailsTextColor}]}>
-            {selectedCard.type.toUpperCase()}
-          </Text>
-          <Text style={[styles.detailLabel, {color: detailsTextColor}]}>
-            CVV:
-          </Text>
-          <Text style={[styles.detailText, {color: detailsTextColor}]}>
-            {selectedCard.cvv}
-          </Text>
-          <Text style={[styles.detailLabel, {color: detailsTextColor}]}>
-            Баланс карты:
-          </Text>
-          <Text style={[styles.detailText, {color: detailsTextColor}]}>
-            {selectedCard.balance.toLocaleString('ru-RU')} ₸
-          </Text>
+      {/* Модальное окно для реквизитов карты */}
+      {showCardDetails && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.overlayTouchable}
+            onPress={() => setShowCardDetails(false)}
+            activeOpacity={1}
+          />
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{translateY: cardModalAnim}],
+                backgroundColor: detailsCardBackground,
+              },
+            ]}>
+            {/* Кнопка закрытия модалки */}
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowCardDetails(false)}>
+              <Icon name="close" size={24} color={detailsTextColor} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, {color: detailsTextColor}]}>
+              Реквизиты карты
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              Номер карты:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {selectedCard.cardNumber}
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              Срок действия:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {selectedCard.expiry}
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              Тип карты:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {selectedCard.type.toUpperCase()}
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              CVV:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {selectedCard.cvv}
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              Баланс карты:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {selectedCard.balance.toLocaleString('ru-RU')} ₸
+            </Text>
+          </Animated.View>
+        </View>
+      )}
+      {/* Модальное окно для реквизитов счета */}
+      {showAccountDetails && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.overlayTouchable}
+            onPress={() => setShowAccountDetails(false)}
+            activeOpacity={1}
+          />
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              {
+                transform: [{translateY: accountModalAnim}],
+                backgroundColor: detailsAccountBackground,
+              },
+            ]}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowAccountDetails(false)}>
+              <Icon name="close" size={24} color={detailsTextColor} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, {color: detailsTextColor}]}>
+              Реквизиты счета
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              ФИО:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {user.fullName}
+            </Text>
+            <Text style={[styles.modalLabel, {color: detailsTextColor}]}>
+              Номер счета:
+            </Text>
+            <Text style={[styles.modalText, {color: detailsTextColor}]}>
+              {user.accountNumber}
+            </Text>
+          </Animated.View>
         </View>
       )}
     </SafeAreaView>
@@ -245,30 +332,61 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 18,
   },
-  detailsContainer: {
-    marginTop: 20,
-    width: '90%',
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
   },
-  detailsTitle: {
+  overlayTouchable: {
+    flex: 1,
+  },
+  modalContainer: {
+    width: '100%',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    zIndex: 3,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+    zIndex: 1,
+  },
+  modalTitle: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 15,
     textAlign: 'center',
   },
-  detailLabel: {
+  modalLabel: {
     fontSize: 14,
     marginTop: 10,
   },
-  detailText: {
+  modalText: {
     fontSize: 16,
     fontWeight: '600',
     marginTop: 5,
+  },
+  toggleButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+  },
+  toggleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cardBalance: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

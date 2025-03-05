@@ -6,6 +6,8 @@ import {ThemeContext} from '../contexts/ThemeContext';
 interface OperationsPanelProps {
   showDetails: boolean;
   toggleDetails: () => void;
+  showAccountDetails: boolean;
+  toggleAccountDetails: () => void;
 }
 
 const operations = [
@@ -17,6 +19,8 @@ const operations = [
 const OperationsPanel = ({
   showDetails,
   toggleDetails,
+  showAccountDetails,
+  toggleAccountDetails,
 }: OperationsPanelProps) => {
   const {colors} = useContext(ThemeContext);
 
@@ -26,7 +30,7 @@ const OperationsPanel = ({
 
   return (
     <View style={styles.container}>
-      {/* Элемент для переключения отображения реквизитов карты */}
+      {/* Переключение отображения реквизитов карты */}
       <TouchableOpacity
         style={[styles.toggleItem, {borderBottomColor: colors.text}]}
         onPress={toggleDetails}
@@ -42,6 +46,27 @@ const OperationsPanel = ({
             {showDetails
               ? 'Скрыть реквизиты карты'
               : 'Показать реквизиты карты'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      {/* Переключение отображения реквизитов счета */}
+      <TouchableOpacity
+        style={[styles.toggleItem, {borderBottomColor: colors.text}]}
+        onPress={toggleAccountDetails}
+        activeOpacity={0.7}>
+        <View style={styles.toggleContent}>
+          <Icon
+            name={
+              showAccountDetails ? 'account-off-outline' : 'account-outline'
+            }
+            size={24}
+            color={colors.text}
+            style={styles.icon}
+          />
+          <Text style={[styles.toggleText, {color: colors.text}]}>
+            {showAccountDetails
+              ? 'Скрыть реквизиты счета'
+              : 'Показать реквизиты счета'}
           </Text>
         </View>
       </TouchableOpacity>
