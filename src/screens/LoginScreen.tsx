@@ -19,7 +19,7 @@ const LoginScreen = ({navigation}: any) => {
 
   useEffect(() => {
     if (user) {
-      navigation.replace('SellerFlow'); // Если уже авторизован, сразу на SellerFlow
+      // navigation.replace('MainTabs'); // Если уже авторизован, сразу на SellerFlow
     }
   }, [user]);
 
@@ -30,7 +30,9 @@ const LoginScreen = ({navigation}: any) => {
     }
 
     if (login(identifier, password)) {
-      navigation.replace('SellerFlow'); // Убираем экран логина из стека
+      setTimeout(() => {
+        // navigation.replace('MainTabs'); // 🔹 Добавлена задержка 1 секунда
+      }, 100);
     } else {
       Alert.alert('Ошибка', 'Неверный логин или пароль.');
     }

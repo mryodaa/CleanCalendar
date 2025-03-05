@@ -22,6 +22,9 @@ const CARD_MARGIN = 10;
 const CARD_SPACING = CARD_WIDTH + CARD_MARGIN * 2;
 const CARD_HEIGHT = CARD_WIDTH / 1.586;
 
+// Тип для элемента массива FlatList: либо карта, либо элемент с кнопкой "Добавить карту"
+type CardData = Card | {isNew: true};
+
 interface Card {
   cardNumber: string;
   expiry: string;
@@ -85,11 +88,12 @@ const CardItem = ({card, index}: CardItemProps) => {
 };
 
 const AccountsScreen = () => {
-  const {user} = useContext(AuthContext);
+  const {user, addCard} = useContext(AuthContext);
   const {theme, colors} = useContext(ThemeContext);
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [showAccountDetails, setShowAccountDetails] = useState(false);
+  const [showCardCreationModal, setShowCardCreationModal] = useState(false);
 
   const onViewRef = useRef(({viewableItems}: {viewableItems: ViewToken[]}) => {
     if (viewableItems && viewableItems.length > 0) {
@@ -98,10 +102,17 @@ const AccountsScreen = () => {
   });
   const viewConfigRef = useRef({viewAreaCoveragePercentThreshold: 50});
 
-  // Animated values для модальных окон
+  // Animated value для модального окна создания карты
+  const cardCreationAnim = useRef(new Animated.Value(height)).current;
   const cardModalAnim = useRef(new Animated.Value(height)).current;
   const accountModalAnim = useRef(new Animated.Value(height)).current;
-
+  useEffect(() => {
+    Animated.timing(cardCreationAnim, {
+      toValue: showCardCreationModal ? 0 : height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showCardCreationModal, cardCreationAnim]);
   useEffect(() => {
     Animated.timing(cardModalAnim, {
       toValue: showCardDetails ? 0 : height,
@@ -109,7 +120,6 @@ const AccountsScreen = () => {
       useNativeDriver: true,
     }).start();
   }, [showCardDetails, cardModalAnim]);
-
   useEffect(() => {
     Animated.timing(accountModalAnim, {
       toValue: showAccountDetails ? 0 : height,
@@ -133,8 +143,87 @@ const AccountsScreen = () => {
   }
 
   const selectedCard = user.cards[selectedCardIndex];
+  // Объединяем существующие карты с кнопкой "Добавить карту" (добавляем элемент всегда)
+  const cardsData: CardData[] = [...user.cards, {isNew: true}];
 
-  // Для деталей используем белый фон в темной теме для контраста
+  // Функция генерации случайных цифр заданной длины
+  const randomDigits = (length: number) =>
+    Math.floor(Math.random() * Math.pow(10, length))
+      .toString()
+      .padStart(length, '0');
+
+  // Функция генерации карты по типу
+  const generateCard = (cardType: 'debit' | 'credit'): Card => {
+    const cardNumber = `${randomDigits(4)} ${randomDigits(4)} ${randomDigits(
+      4,
+    )} ${randomDigits(4)}`;
+    const currentYear = new Date().getFullYear();
+    const expiryYear = cardType === 'debit' ? currentYear + 3 : currentYear + 5;
+    const month = Math.floor(Math.random() * 12) + 1;
+    const expiryMonth = month < 10 ? `0${month}` : month.toString();
+    const expiry = `${expiryMonth}/${expiryYear.toString().slice(-2)}`;
+    const cvv = randomDigits(3);
+    const balance = cardType === 'debit' ? 0 : 10000;
+    return {
+      cardNumber,
+      expiry,
+      cvv,
+      type: cardType,
+      balance,
+    };
+  };
+
+  const handleCardCreation = (cardType: 'debit' | 'credit') => {
+    const newCard = generateCard(cardType);
+    addCard(newCard);
+    setShowCardCreationModal(false);
+  };
+
+  const renderCardCreationModal = () => (
+    <View style={styles.modalOverlay} pointerEvents="box-none">
+      <TouchableOpacity
+        style={styles.overlayTouchable}
+        onPress={() => setShowCardCreationModal(false)}
+        activeOpacity={1}
+      />
+      <Animated.View
+        style={[
+          styles.modalContainer,
+          {
+            transform: [{translateY: cardCreationAnim}],
+            backgroundColor: colors.background,
+          },
+        ]}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => setShowCardCreationModal(false)}>
+          <Icon name="close" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.modalTitle, {color: colors.text}]}>
+          Создать новую карту
+        </Text>
+        <TouchableOpacity
+          style={styles.modalOption}
+          onPress={() => handleCardCreation('debit')}>
+          <Text style={[styles.modalOptionText, {color: colors.text}]}>
+            Дебетовая карта
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.modalOption}
+          onPress={() => handleCardCreation('credit')}>
+          <Text style={[styles.modalOptionText, {color: colors.text}]}>
+            Кредитная карта
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+
+  // Рендерим OperationsPanel только если у пользователя есть хотя бы одна карта
+  const showOperations = user.cards.length > 0;
+
+  // Для деталей: в темной теме для контраста используем белый фон, иначе background
   const detailsCardBackground = theme === 'dark' ? '#333' : colors.background;
   const detailsAccountBackground =
     theme === 'dark' ? '#333' : colors.background;
@@ -145,23 +234,40 @@ const AccountsScreen = () => {
       style={[styles.screenContainer, {backgroundColor: colors.background}]}>
       <Text style={[styles.title, {color: colors.text}]}>Ваши карты</Text>
       <FlatList
-        data={user.cards}
+        data={cardsData}
         horizontal
         snapToInterval={CARD_SPACING}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.cardNumber}
-        renderItem={({item, index}) => <CardItem card={item} index={index} />}
+        keyExtractor={(item, index) =>
+          'isNew' in item ? `new-${index}` : (item as Card).cardNumber
+        }
+        renderItem={({item, index}) =>
+          'isNew' in item ? (
+            <TouchableOpacity
+              style={[styles.cardWrapper, styles.plusCard]}
+              onPress={() => setShowCardCreationModal(true)}>
+              <View style={styles.plusContent}>
+                <Icon name="plus" size={48} color="#777" />
+                <Text style={styles.plusText}>Добавить карту</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <CardItem card={item as Card} index={index} />
+          )
+        }
         onViewableItemsChanged={onViewRef.current}
         viewabilityConfig={viewConfigRef.current}
         contentContainerStyle={{paddingHorizontal: (width - CARD_WIDTH) / 2}}
       />
-      <OperationsPanel
-        showDetails={showCardDetails}
-        toggleDetails={() => setShowCardDetails(prev => !prev)}
-        showAccountDetails={showAccountDetails}
-        toggleAccountDetails={() => setShowAccountDetails(prev => !prev)}
-      />
+      {showOperations && (
+        <OperationsPanel
+          showDetails={showCardDetails}
+          toggleDetails={() => setShowCardDetails(prev => !prev)}
+          showAccountDetails={showAccountDetails}
+          toggleAccountDetails={() => setShowAccountDetails(prev => !prev)}
+        />
+      )}
       {/* Модальное окно для реквизитов карты */}
       {showCardDetails && (
         <View style={styles.modalOverlay}>
@@ -259,6 +365,7 @@ const AccountsScreen = () => {
           </Animated.View>
         </View>
       )}
+      {showCardCreationModal && renderCardCreationModal()}
     </SafeAreaView>
   );
 };
@@ -309,6 +416,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#fff',
   },
+  cardBalance: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 8,
+  },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -323,6 +437,20 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 4,
     color: '#fff',
+  },
+  plusCard: {
+    backgroundColor: '#eee',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  plusContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  plusText: {
+    fontSize: 16,
+    color: '#777',
+    marginTop: 10,
   },
   centeredContainer: {
     flex: 1,
@@ -339,6 +467,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 50,
     justifyContent: 'flex-end',
   },
   overlayTouchable: {
@@ -349,13 +478,14 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    zIndex: 3,
+    zIndex: 100,
+    elevation: 10,
   },
   closeButton: {
     position: 'absolute',
     top: 10,
     right: 20,
-    zIndex: 1,
+    zIndex: 101,
   },
   modalTitle: {
     fontSize: 20,
@@ -378,15 +508,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 8,
   },
+  modalOption: {
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   toggleButtonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  cardBalance: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 8,
   },
 });

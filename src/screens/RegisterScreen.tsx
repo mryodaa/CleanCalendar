@@ -1,5 +1,12 @@
 import React, {useState, useContext, useEffect} from 'react';
-import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import {AuthContext} from '../contexts/AuthContext';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {User} from '../data/types';
@@ -7,6 +14,10 @@ import {User} from '../data/types';
 const RegisterScreen = ({navigation}: any) => {
   const {register, user} = useContext(AuthContext);
   const {colors} = useContext(ThemeContext);
+
+  const [surname, setSurname] = useState('');
+  const [name, setName] = useState('');
+  const [patronymic, setPatronymic] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,8 +35,19 @@ const RegisterScreen = ({navigation}: any) => {
     return emailRegex.test(email);
   };
 
+  const generateAccountNumber = () => Math.random().toString().slice(2, 18);
+
   const handleRegister = () => {
-    if (!username || !email || !password || !pin || !confirmPin) {
+    if (
+      !surname ||
+      !name ||
+      !patronymic ||
+      !username ||
+      !email ||
+      !password ||
+      !pin ||
+      !confirmPin
+    ) {
       Alert.alert('Ошибка', 'Заполните все поля.');
       return;
     }
@@ -45,37 +67,68 @@ const RegisterScreen = ({navigation}: any) => {
       return;
     }
 
-    // Создаём нового пользователя с дефолтными значениями для отсутствующих полей.
     const newUser: User = {
       id: Date.now().toString(),
-      fullName: username, // Можно добавить отдельное поле для ФИО
-      name: username,
-      surname: '',
-      patronymic: '',
-      username: username,
-      email: email,
-      accountNumber: '000000000000000000', // Задайте генерацию номера счета по необходимости
+      name,
+      surname,
+      patronymic,
+      fullName: `${surname} ${name} ${patronymic}`,
+      username,
+      email,
+      accountNumber: `KZ${generateAccountNumber()}`,
       balance: 0,
       currency: 'KZT',
       cards: [],
       login: username,
-      password: password,
-      pin: '', // PIN будет установлен в функции register
-      isAuthorized: false,
+      password,
+      isAuthorized: false, // Новый пользователь не авторизован сразу
+      pin: '',
     };
 
-    if (register(newUser, pin)) {
-      navigation.replace('HomeScreen'); // После регистрации перенаправляем в HomeScreen
+    const success = register(newUser, pin);
+
+    if (success) {
+      // navigation.replace('Home'); // Отключаем ручную навигацию (возможно условный рендеринг в App.tsx)
     } else {
       Alert.alert(
         'Ошибка',
-        'Пользователь с таким именем или почтой уже существует.',
+        'Пользователь с таким логином или email уже существует.',
       );
     }
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: colors.background}]}>
+    <ScrollView
+      style={[styles.scrollContainer, {backgroundColor: colors.background}]}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled">
+      <Text style={[styles.label, {color: colors.text}]}>Фамилия</Text>
+      <TextInput
+        placeholder="Введите фамилию"
+        placeholderTextColor={colors.text}
+        value={surname}
+        onChangeText={setSurname}
+        style={[styles.input, {borderColor: colors.button, color: colors.text}]}
+      />
+
+      <Text style={[styles.label, {color: colors.text}]}>Имя</Text>
+      <TextInput
+        placeholder="Введите имя"
+        placeholderTextColor={colors.text}
+        value={name}
+        onChangeText={setName}
+        style={[styles.input, {borderColor: colors.button, color: colors.text}]}
+      />
+
+      <Text style={[styles.label, {color: colors.text}]}>Отчество</Text>
+      <TextInput
+        placeholder="Введите отчество"
+        placeholderTextColor={colors.text}
+        value={patronymic}
+        onChangeText={setPatronymic}
+        style={[styles.input, {borderColor: colors.button, color: colors.text}]}
+      />
+
       <Text style={[styles.label, {color: colors.text}]}>Логин</Text>
       <TextInput
         placeholder="Введите логин"
@@ -142,13 +195,21 @@ const RegisterScreen = ({navigation}: any) => {
         onPress={() => navigation.replace('Login')}>
         Уже есть аккаунт? Войти
       </Text>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 20, justifyContent: 'center'},
-  label: {fontSize: 16, marginBottom: 5},
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
   input: {
     borderWidth: 1,
     borderRadius: 4,
