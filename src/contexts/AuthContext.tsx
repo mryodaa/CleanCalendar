@@ -68,11 +68,20 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     return false;
   };
 
-  // Регистрация нового пользователя с установкой PIN-кода
+  // Регистрация нового пользователя с проверкой уникальности и установкой PIN-кода
   const register = (newUser: User, pin: string) => {
-    // Устанавливаем заданный PIN-код для нового пользователя
+    // Проверяем уникальность логина и email среди существующих пользователей
+    const isUserExist = users.find(
+      u => u.login === newUser.login || u.email === newUser.email,
+    );
+    if (isUserExist) {
+      return false; // Пользователь с такими данными уже существует
+    }
+
+    // Формируем fullName из Фамилии, Имени и Отчества
+    newUser.fullName = `${newUser.surname} ${newUser.name} ${newUser.patronymic}`;
     newUser.pin = pin;
-    // Можно добавить валидацию и проверку на существование пользователя здесь
+    // Здесь можно добавить дополнительные проверки и логику по созданию нового пользователя
     setUser(newUser);
     setIsAuthorized(false); // После регистрации требуется верификация PIN-кодом
     storage.set('user', JSON.stringify(newUser));
