@@ -2,6 +2,7 @@ import React, {useState, useContext, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
 import {AuthContext} from '../contexts/AuthContext';
 import {ThemeContext} from '../contexts/ThemeContext';
+import {User} from '../data/types';
 
 const RegisterScreen = ({navigation}: any) => {
   const {register, user} = useContext(AuthContext);
@@ -9,10 +10,12 @@ const RegisterScreen = ({navigation}: any) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
 
   useEffect(() => {
     if (user) {
-      navigation.replace('SellerFlow'); // Если уже авторизован, сразу в SellerFlow
+      navigation.replace('HomeScreen'); // Если пользователь уже авторизован, сразу в HomeScreen
     }
   }, [user]);
 
@@ -22,7 +25,7 @@ const RegisterScreen = ({navigation}: any) => {
   };
 
   const handleRegister = () => {
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !pin || !confirmPin) {
       Alert.alert('Ошибка', 'Заполните все поля.');
       return;
     }
@@ -32,8 +35,37 @@ const RegisterScreen = ({navigation}: any) => {
       return;
     }
 
-    if (register(username, email, password)) {
-      navigation.replace('SellerFlow'); // После регистрации сразу заходим в систему
+    if (pin !== confirmPin) {
+      Alert.alert('Ошибка', 'PIN-коды не совпадают.');
+      return;
+    }
+
+    if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      Alert.alert('Ошибка', 'PIN-код должен состоять из 4 цифр.');
+      return;
+    }
+
+    // Создаём нового пользователя с дефолтными значениями для отсутствующих полей.
+    const newUser: User = {
+      id: Date.now().toString(),
+      fullName: username, // Можно добавить отдельное поле для ФИО
+      name: username,
+      surname: '',
+      patronymic: '',
+      username: username,
+      email: email,
+      accountNumber: '000000000000000000', // Задайте генерацию номера счета по необходимости
+      balance: 0,
+      currency: 'KZT',
+      cards: [],
+      login: username,
+      password: password,
+      pin: '', // PIN будет установлен в функции register
+      isAuthorized: false,
+    };
+
+    if (register(newUser, pin)) {
+      navigation.replace('HomeScreen'); // После регистрации перенаправляем в HomeScreen
     } else {
       Alert.alert(
         'Ошибка',
@@ -70,6 +102,32 @@ const RegisterScreen = ({navigation}: any) => {
         value={password}
         onChangeText={setPassword}
         style={[styles.input, {borderColor: colors.button, color: colors.text}]}
+        secureTextEntry
+      />
+
+      <Text style={[styles.label, {color: colors.text}]}>PIN-код</Text>
+      <TextInput
+        placeholder="Введите PIN-код (4 цифры)"
+        placeholderTextColor={colors.text}
+        value={pin}
+        onChangeText={setPin}
+        style={[styles.input, {borderColor: colors.button, color: colors.text}]}
+        keyboardType="numeric"
+        maxLength={4}
+        secureTextEntry
+      />
+
+      <Text style={[styles.label, {color: colors.text}]}>
+        Подтвердите PIN-код
+      </Text>
+      <TextInput
+        placeholder="Повторите PIN-код"
+        placeholderTextColor={colors.text}
+        value={confirmPin}
+        onChangeText={setConfirmPin}
+        style={[styles.input, {borderColor: colors.button, color: colors.text}]}
+        keyboardType="numeric"
+        maxLength={4}
         secureTextEntry
       />
 

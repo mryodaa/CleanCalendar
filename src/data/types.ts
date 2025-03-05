@@ -45,6 +45,7 @@ export interface Card {
   cvv: string;
   expiry: string;
   type: 'debit' | 'credit';
+  balance: number;
 }
 
 export interface User {

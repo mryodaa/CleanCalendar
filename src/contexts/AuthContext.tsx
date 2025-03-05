@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { MMKV } from 'react-native-mmkv';
-import { users } from '../data/users'; // Подключаем массив пользователей
-import { User } from '../data/types';
+import React, {createContext, useState, useEffect, ReactNode} from 'react';
+import {MMKV} from 'react-native-mmkv';
+import {users} from '../data/users'; // Подключаем массив пользователей
+import {User} from '../data/types';
 
 // Хранилище для кэша пользователя
 const storage = new MMKV();
@@ -11,6 +11,7 @@ interface AuthContextProps {
   isAuthorized: boolean;
   login: (identifier: string, password: string) => boolean;
   verifyPin: (pin: string) => boolean;
+  register: (newUser: User, pin: string) => boolean;
   logout: () => void;
 }
 
@@ -19,6 +20,7 @@ export const AuthContext = createContext<AuthContextProps>({
   isAuthorized: false,
   login: () => false,
   verifyPin: () => false,
+  register: () => false,
   logout: () => {},
 });
 
@@ -26,9 +28,9 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({children}: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthorized, setIsAuthorized] = useState<boolean>(false); // Проверка по PIN-коду
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
 
   useEffect(() => {
     // Проверяем, был ли пользователь ранее авторизован
@@ -43,9 +45,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Логин по логину или email + пароль
   const login = (identifier: string, password: string) => {
     const foundUser = users.find(
-      (u) =>
+      u =>
         (u.login === identifier || u.email === identifier) &&
-        u.password === password
+        u.password === password,
     );
 
     if (foundUser) {
@@ -66,6 +68,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return false;
   };
 
+  // Регистрация нового пользователя с установкой PIN-кода
+  const register = (newUser: User, pin: string) => {
+    // Устанавливаем заданный PIN-код для нового пользователя
+    newUser.pin = pin;
+    // Можно добавить валидацию и проверку на существование пользователя здесь
+    setUser(newUser);
+    setIsAuthorized(false); // После регистрации требуется верификация PIN-кодом
+    storage.set('user', JSON.stringify(newUser));
+    return true;
+  };
+
   // Выход из аккаунта
   const logout = () => {
     setUser(null);
@@ -74,7 +87,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthorized, login, verifyPin, logout }}>
+    <AuthContext.Provider
+      value={{user, isAuthorized, login, verifyPin, register, logout}}>
       {children}
     </AuthContext.Provider>
   );
