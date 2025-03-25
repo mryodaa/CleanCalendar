@@ -15,6 +15,7 @@ import {Priority, RepeatType} from '../data/types';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {useTasks} from '../hooks/useTasks';
 import {useNavigation} from '@react-navigation/native';
+import {useTaskContext} from '../contexts/TaskContext';
 
 const AddTaskScreen = () => {
   const {colors} = useContext(ThemeContext);
@@ -30,7 +31,7 @@ const AddTaskScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const {add} = useTasks(date.toISOString().split('T')[0]);
+  const {add} = useTaskContext();
 
   const handleSave = () => {
     if (!title.trim()) return Alert.alert('Ошибка', 'Введите название задачи');
@@ -47,8 +48,6 @@ const AddTaskScreen = () => {
 
     Alert.alert('Готово', 'Задача добавлена');
     navigation.goBack();
-
-    // TODO: navigation.goBack();
   };
 
   return (

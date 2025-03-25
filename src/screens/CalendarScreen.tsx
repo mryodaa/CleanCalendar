@@ -11,14 +11,17 @@ import {Calendar} from 'react-native-calendars';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {Priority, RepeatType} from '../data/types';
 import {useTasks} from '../hooks/useTasks';
+import {useTaskContext} from '../contexts/TaskContext';
 
 const CalendarScreen = () => {
   const {colors} = useContext(ThemeContext);
+
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0],
   );
 
-  const {tasks, toggle, remove} = useTasks(selectedDate);
+  const {tasks, toggle, remove} = useTaskContext();
+  const filteredTasks = tasks.filter(task => task.date === selectedDate);
   const themedStyles = getStyles(colors);
 
   const handleLongPress = (id: string) => {
@@ -125,7 +128,7 @@ const CalendarScreen = () => {
         </Text>
 
         <FlatList
-          data={tasks}
+          data={filteredTasks}
           keyExtractor={item => item.id}
           renderItem={renderTask}
           ItemSeparatorComponent={() => <View style={{height: 12}} />}

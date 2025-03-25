@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import {ThemeProvider, ThemeContext} from './src/contexts/ThemeContext';
 import BottomTabs from './src/navigation/BottomTabs';
+import {TaskProvider} from './src/contexts/TaskContext';
 
 const AppNavigator = () => {
   const {theme} = useContext(ThemeContext);
@@ -20,7 +21,9 @@ const AppNavigator = () => {
 const App = () => {
   return (
     <ThemeProvider>
-      <AppNavigator />
+      <TaskProvider>
+        <AppNavigator />
+      </TaskProvider>
     </ThemeProvider>
   );
 };

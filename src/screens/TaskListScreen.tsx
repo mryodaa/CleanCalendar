@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,32 @@ import {
 import {ThemeContext} from '../contexts/ThemeContext';
 import {useTasks} from '../hooks/useTasks';
 import {Task, Priority} from '../data/types';
+import {useTaskContext} from '../contexts/TaskContext';
 
 const TaskListScreen = () => {
   const {colors} = useContext(ThemeContext);
-  const {tasks, toggle, remove} = useTasks('');
+  const {tasks, toggle, remove} = useTaskContext();
 
-  const grouped = groupTasksByDate(tasks);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'done' | 'undone'>(
+    'all',
+  );
+  const [filterPriority, setFilterPriority] = useState<'all' | Priority>('all');
+
   const styles = getStyles(colors);
+
+  const filteredTasks = tasks.filter(task => {
+    const statusMatch =
+      filterStatus === 'all' ||
+      (filterStatus === 'done' && task.isDone) ||
+      (filterStatus === 'undone' && !task.isDone);
+
+    const priorityMatch =
+      filterPriority === 'all' || task.priority === filterPriority;
+
+    return statusMatch && priorityMatch;
+  });
+
+  const grouped = groupTasksByDate(filteredTasks);
 
   const renderTask = ({item}: {item: Task}) => {
     const priorityColors: Record<Priority, string> = {
@@ -53,6 +72,57 @@ const TaskListScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Все задачи</Text>
+
+      {/* Фильтры */}
+      <View style={styles.filters}>
+        <View style={styles.filterGroup}>
+          {(['all', 'undone', 'done'] as const).map(type => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.filterButton,
+                filterStatus === type && styles.filterButtonActive,
+              ]}
+              onPress={() => setFilterStatus(type)}>
+              <Text
+                style={[
+                  styles.filterText,
+                  filterStatus === type && styles.filterTextActive,
+                ]}>
+                {{all: 'Все', undone: 'Активные', done: 'Выполненные'}[type]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.filterGroup}>
+          {(['all', 'low', 'medium', 'high'] as const).map(level => (
+            <TouchableOpacity
+              key={level}
+              style={[
+                styles.filterButton,
+                filterPriority === level && styles.filterButtonActive,
+              ]}
+              onPress={() => setFilterPriority(level)}>
+              <Text
+                style={[
+                  styles.filterText,
+                  filterPriority === level && styles.filterTextActive,
+                ]}>
+                {
+                  {
+                    all: 'Любой',
+                    low: 'Низкий',
+                    medium: 'Средний',
+                    high: 'Высокий',
+                  }[level]
+                }
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
       <SectionList
         sections={grouped}
         keyExtractor={item => item.id}
@@ -78,7 +148,6 @@ const groupTasksByDate = (tasks: Task[]) => {
     map.get(task.date)!.push(task);
   });
 
-  // Возвращаем в виде массива секций
   return Array.from(map.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, data]) => ({
@@ -109,6 +178,31 @@ const getStyles = (colors: any) =>
       fontWeight: '700',
       color: colors.text,
       marginBottom: 12,
+    },
+    filters: {
+      marginBottom: 16,
+    },
+    filterGroup: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 8,
+    },
+    filterButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 20,
+      backgroundColor: '#ccc',
+    },
+    filterButtonActive: {
+      backgroundColor: colors.button,
+    },
+    filterText: {
+      color: '#333',
+    },
+    filterTextActive: {
+      color: colors.buttonText,
+      fontWeight: '600',
     },
     sectionHeader: {
       fontSize: 18,
