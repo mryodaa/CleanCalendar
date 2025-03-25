@@ -6,14 +6,14 @@ import {RootStackParamList} from '../types';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'Calendar'>;
 
-const SettingsScreen = () => {
+const CalendarScreen = () => {
   const navigation = useNavigation<Navigation>();
 
   return (
     <View>
-      <Text>Экран настроек</Text>
+      <Text>Экран календаря</Text>
     </View>
   );
 };
 
-export default SettingsScreen;
+export default CalendarScreen;
