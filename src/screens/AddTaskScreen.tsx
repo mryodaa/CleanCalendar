@@ -127,7 +127,10 @@ const AddTaskScreen = () => {
 
       <Text style={themedStyles.label}>Приоритет</Text>
       <View style={themedStyles.pickerWrapper}>
-        <Picker selectedValue={priority} onValueChange={v => setPriority(v)}>
+        <Picker
+          selectedValue={priority}
+          onValueChange={v => setPriority(v)}
+          style={{color: colors.text}}>
           <Picker.Item label="Низкий" value="low" />
           <Picker.Item label="Средний" value="medium" />
           <Picker.Item label="Высокий" value="high" />
@@ -136,22 +139,13 @@ const AddTaskScreen = () => {
 
       <Text style={themedStyles.label}>Повтор</Text>
       <View style={themedStyles.pickerWrapper}>
-        <Picker selectedValue={repeat} onValueChange={v => setRepeat(v)}>
-          <Picker.Item
-            label="Без повтора"
-            value="none"
-            style={{color: `${colors.text}`}}
-          />
-          <Picker.Item
-            label="Ежедневно"
-            value="daily"
-            style={{color: `${colors.text}`}}
-          />
-          <Picker.Item
-            label="Еженедельно"
-            value="weekly"
-            style={{color: `${colors.text}`}}
-          />
+        <Picker
+          selectedValue={repeat}
+          onValueChange={v => setRepeat(v)}
+          style={{color: colors.text}}>
+          <Picker.Item label="Без повтора" value="none" />
+          <Picker.Item label="Ежедневно" value="daily" />
+          <Picker.Item label="Еженедельно" value="weekly" />
         </Picker>
       </View>
 
