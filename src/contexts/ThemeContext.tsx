@@ -16,7 +16,7 @@ const lightColors: ThemeColors = {
 const darkColors: ThemeColors = {
   background: '#121212',
   text: '#ffffff',
-  button: '#BB86FC',
+  button: '#0385ff',
   buttonText: '#000000',
 };
 
