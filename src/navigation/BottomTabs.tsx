@@ -17,6 +17,7 @@ const BottomTabs = () => {
         component={CalendarScreen}
         options={{
           title: 'Календарь',
+          headerTitle: 'Календарь уборок',
           tabBarIcon: ({color, size}) => (
             <Icon name="calendar-month" size={size} color={color} />
           ),
@@ -26,9 +27,9 @@ const BottomTabs = () => {
         name="Tasks"
         component={TaskListScreen}
         options={{
-          title: 'Задачи',
+          title: 'Уборки',
           tabBarIcon: ({color, size}) => (
-            <Icon name="check-circle-outline" size={size} color={color} />
+            <Icon name="broom" size={size} color={color} />
           ),
         }}
       />
@@ -36,7 +37,7 @@ const BottomTabs = () => {
         name="Add"
         component={AddTaskScreen}
         options={{
-          title: 'Добавить',
+          title: 'Запланировать',
           tabBarIcon: ({color, size}) => (
             <Icon name="plus-circle-outline" size={size} color={color} />
           ),

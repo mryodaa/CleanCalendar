@@ -8,6 +8,7 @@ import {ThemeProvider, ThemeContext} from './src/contexts/ThemeContext';
 import BottomTabs from './src/navigation/BottomTabs';
 import {TaskProvider} from './src/contexts/TaskContext';
 import notifee, {AndroidImportance} from '@notifee/react-native';
+import MainStack from './src/navigation/MainStack';
 
 const AppNavigator = () => {
   const {theme} = useContext(ThemeContext);
@@ -27,7 +28,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer theme={theme === 'dark' ? DarkTheme : DefaultTheme}>
-      <BottomTabs />
+      <MainStack />
     </NavigationContainer>
   );
 };

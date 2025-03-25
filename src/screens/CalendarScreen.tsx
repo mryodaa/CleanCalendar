@@ -10,8 +10,11 @@ import {
 import {Calendar} from 'react-native-calendars';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {Priority, RepeatType} from '../data/types';
-import {useTasks} from '../hooks/useTasks';
 import {useTaskContext} from '../contexts/TaskContext';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import {useNavigation} from '@react-navigation/native';
+import {RootStackParamList} from '../types';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 const CalendarScreen = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -21,26 +24,30 @@ const CalendarScreen = () => {
     new Date().toISOString().split('T')[0],
   );
 
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {tasks, toggle, remove} = useTaskContext();
   const filteredTasks = tasks.filter(task => task.date === selectedDate);
   const themedStyles = getStyles(colors);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
-  const formatDateTime = (date: Date): string => {
+  const formatMonth = (date: Date): string => {
     return new Intl.DateTimeFormat('ru-RU', {
-      day: 'numeric',
       month: 'long',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
     }).format(date);
+  };
+
+  const handleMonthChange = (months: {dateString: string}[]) => {
+    if (months.length > 0) {
+      setCurrentMonth(new Date(months[0].dateString));
+    }
   };
 
   const handleLongPress = (id: string) => {
@@ -58,18 +65,6 @@ const CalendarScreen = () => {
     );
   };
 
-  const formatMonth = (date: Date): string => {
-    return new Intl.DateTimeFormat('ru-RU', {
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
-  };
-
-  const handleMonthChange = (months: {dateString: string}[]) => {
-    if (months.length > 0) {
-      setCurrentMonth(new Date(months[0].dateString));
-    }
-  };
   const renderTask = ({item}: any) => {
     const priorityColors: Record<Priority, string> = {
       low: '#8BC34A',
@@ -107,6 +102,11 @@ const CalendarScreen = () => {
         <View
           style={[themedStyles.priorityDot, {backgroundColor: priorityColor}]}
         />
+        <TouchableOpacity
+          onPress={() => navigation.navigate('EditTask', {task: item})}
+          style={{marginLeft: 10}}>
+          <Icon name="edit" size={20} color={colors.button} />
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -124,7 +124,6 @@ const CalendarScreen = () => {
     <View style={themedStyles.container}>
       <Calendar
         onVisibleMonthsChange={handleMonthChange}
-        // key={currentTime.toISOString()}
         onDayPress={day => {
           setSelectedDate(day.dateString);
         }}

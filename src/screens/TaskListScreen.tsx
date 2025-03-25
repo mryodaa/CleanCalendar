@@ -7,13 +7,18 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {ThemeContext} from '../contexts/ThemeContext';
-import {useTasks} from '../hooks/useTasks';
-import {Task, Priority} from '../data/types';
 import {useTaskContext} from '../contexts/TaskContext';
+import {Task, Priority} from '../data/types';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/MainStack';
 
 const TaskListScreen = () => {
   const {colors} = useContext(ThemeContext);
   const {tasks, toggle, remove} = useTaskContext();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'done' | 'undone'>(
     'all',
@@ -44,13 +49,13 @@ const TaskListScreen = () => {
     };
 
     return (
-      <TouchableOpacity
-        style={styles.task}
-        onPress={() => toggle(item.id)}
-        onLongPress={() => remove(item.id)}>
-        <View
-          style={[styles.status, item.isDone && {backgroundColor: '#4CAF50'}]}
-        />
+      <View style={styles.task}>
+        <TouchableOpacity onPress={() => toggle(item.id)}>
+          <View
+            style={[styles.status, item.isDone && {backgroundColor: '#4CAF50'}]}
+          />
+        </TouchableOpacity>
+
         <View style={styles.textWrapper}>
           <Text style={[styles.title, item.isDone && styles.titleDone]}>
             {item.title}
@@ -59,13 +64,20 @@ const TaskListScreen = () => {
             {item.time || 'Без времени'} • {item.category}
           </Text>
         </View>
+
         <View
           style={[
             styles.priorityDot,
             {backgroundColor: priorityColors[item.priority]},
           ]}
         />
-      </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('EditTask', {task: item})}
+          style={{paddingLeft: 12}}>
+          <Icon name="edit" size={20} color={colors.text} />
+        </TouchableOpacity>
+      </View>
     );
   };
 
