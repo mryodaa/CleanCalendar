@@ -12,43 +12,49 @@ import {
 } from 'react-native';
 import {ThemeContext} from '../contexts/ThemeContext';
 import {Picker} from '@react-native-picker/picker';
-import {Priority, RepeatType} from '../data/types';
+import {Priority, RepeatType, Task} from '../data/types';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {useTaskContext} from '../contexts/TaskContext';
 
-const AddTaskScreen = () => {
+const EditTaskScreen = () => {
   const {colors} = useContext(ThemeContext);
   const themedStyles = getStyles(colors);
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{params: {task: Task}}, 'params'>>();
+  const {task} = route.params;
 
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
-  const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState('');
-  const [priority, setPriority] = useState<Priority>('medium');
-  const [repeat, setRepeat] = useState<RepeatType>('none');
+  const [title, setTitle] = useState(task.title);
+  const [category, setCategory] = useState(task.category);
+  const [date, setDate] = useState(new Date(task.date));
+  const [time, setTime] = useState(task.time || '');
+  const [priority, setPriority] = useState<Priority>(task.priority);
+  const [repeat, setRepeat] = useState<RepeatType>(task.repeat);
+  const [reminder, setReminder] = useState(!!task.notificationId);
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [isReminderEnabled, setIsReminderEnabled] = useState(true);
 
-  const {add} = useTaskContext();
+  const {update} = useTaskContext();
 
-  const handleSave = () => {
+  const handleUpdate = () => {
     if (!title.trim()) return Alert.alert('Ошибка', 'Введите название задачи');
     if (!category.trim()) return Alert.alert('Ошибка', 'Укажите категорию');
 
-    add({
-      title,
-      category,
-      date: date.toISOString().split('T')[0],
-      time,
-      priority,
-      repeat,
-      reminder: isReminderEnabled, // 👈 прокидываем
-    });
+    update(
+      {
+        ...task,
+        title,
+        category,
+        date: date.toISOString().split('T')[0],
+        time,
+        priority,
+        repeat,
+      },
+      reminder,
+    );
 
-    Alert.alert('Готово', 'Задача добавлена');
+    Alert.alert('Успешно', 'Задача обновлена');
     navigation.goBack();
   };
 
@@ -57,19 +63,17 @@ const AddTaskScreen = () => {
       <Text style={themedStyles.label}>Название</Text>
       <TextInput
         style={themedStyles.input}
-        placeholder="Введите название"
-        placeholderTextColor={colors.text + '66'}
         value={title}
         onChangeText={setTitle}
+        placeholderTextColor={colors.text + '66'}
       />
 
       <Text style={themedStyles.label}>Категория</Text>
       <TextInput
         style={themedStyles.input}
-        placeholder="Например: Кухня"
-        placeholderTextColor={colors.text + '66'}
         value={category}
         onChangeText={setCategory}
+        placeholderTextColor={colors.text + '66'}
       />
 
       <Text style={themedStyles.label}>Дата</Text>
@@ -118,7 +122,7 @@ const AddTaskScreen = () => {
                   hour: '2-digit',
                   minute: '2-digit',
                 })
-                .replace(/^(\d):/, '0$1');
+                .replace(/^\d:/, '0$&');
               setTime(formatted);
             }
           }}
@@ -143,19 +147,17 @@ const AddTaskScreen = () => {
         </Picker>
       </View>
 
-      {/* ✅ Переключатель напоминания */}
-      <View style={themedStyles.reminderRow}>
-        <Text style={themedStyles.label}>Добавить напоминание</Text>
+      <View style={themedStyles.toggleRow}>
+        <Text style={themedStyles.label}>Напоминание</Text>
         <Switch
-          value={isReminderEnabled}
-          onValueChange={setIsReminderEnabled}
-          trackColor={{false: '#888', true: colors.button}}
-          thumbColor={colors.buttonText}
+          value={reminder}
+          onValueChange={setReminder}
+          thumbColor={reminder ? colors.button : '#ccc'}
         />
       </View>
 
-      <TouchableOpacity style={themedStyles.saveButton} onPress={handleSave}>
-        <Text style={themedStyles.saveText}>Сохранить</Text>
+      <TouchableOpacity style={themedStyles.saveButton} onPress={handleUpdate}>
+        <Text style={themedStyles.saveText}>Обновить</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -188,11 +190,11 @@ const getStyles = (colors: any) =>
       backgroundColor: colors.background === '#ffffff' ? '#f2f2f2' : '#1c1c1c',
       marginTop: 4,
     },
-    reminderRow: {
-      marginTop: 20,
+    toggleRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      marginTop: 16,
     },
     saveButton: {
       marginTop: 30,
@@ -208,4 +210,4 @@ const getStyles = (colors: any) =>
     },
   });
 
-export default AddTaskScreen;
+export default EditTaskScreen;
