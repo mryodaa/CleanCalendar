@@ -1,17 +1,18 @@
 export type Priority = 'low' | 'medium' | 'high';
 export type RepeatType = 'none' | 'daily' | 'weekly';
 
-export interface Task {
+export type Task = {
   id: string;
   title: string;
-  description?: string;
   category: string;
-  date: string; // YYYY-MM-DD
-  time?: string; // HH:mm
-  isDone: boolean;
-  repeat: RepeatType;
+  date: string;
+  time?: string;
   priority: Priority;
-}
+  repeat: RepeatType;
+  isDone: boolean;
+  notificationId?: string; // 👈 добавили
+};
+
 // THEME
 export type ThemeType = 'light' | 'dark';
 
