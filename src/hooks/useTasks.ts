@@ -5,13 +5,14 @@ import {
   toggleTask,
   removeTask,
   addTask as addTaskToStorage,
+  getAllTasks,
 } from '../data/TaskStorage';
 
 export const useTasks = (date: string) => {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   const loadTasks = useCallback(() => {
-    const loaded = getTasksByDate(date);
+    const loaded = date ? getTasksByDate(date) : getAllTasks();
     setTasks(loaded);
   }, [date]);
 
