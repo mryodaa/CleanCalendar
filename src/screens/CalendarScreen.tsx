@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,9 @@ import {useTasks} from '../hooks/useTasks';
 import {useTaskContext} from '../contexts/TaskContext';
 
 const CalendarScreen = () => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const {colors} = useContext(ThemeContext);
-
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0],
   );
@@ -23,6 +24,24 @@ const CalendarScreen = () => {
   const {tasks, toggle, remove} = useTaskContext();
   const filteredTasks = tasks.filter(task => task.date === selectedDate);
   const themedStyles = getStyles(colors);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatDateTime = (date: Date): string => {
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(date);
+  };
 
   const handleLongPress = (id: string) => {
     Alert.alert(
@@ -39,6 +58,18 @@ const CalendarScreen = () => {
     );
   };
 
+  const formatMonth = (date: Date): string => {
+    return new Intl.DateTimeFormat('ru-RU', {
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  };
+
+  const handleMonthChange = (months: {dateString: string}[]) => {
+    if (months.length > 0) {
+      setCurrentMonth(new Date(months[0].dateString));
+    }
+  };
   const renderTask = ({item}: any) => {
     const priorityColors: Record<Priority, string> = {
       low: '#8BC34A',
@@ -92,6 +123,8 @@ const CalendarScreen = () => {
   return (
     <View style={themedStyles.container}>
       <Calendar
+        onVisibleMonthsChange={handleMonthChange}
+        // key={currentTime.toISOString()}
         onDayPress={day => {
           setSelectedDate(day.dateString);
         }}
@@ -101,6 +134,11 @@ const CalendarScreen = () => {
             selectedColor: colors.button,
           },
         }}
+        renderHeader={() => (
+          <Text style={themedStyles.customHeader}>
+            {formatMonth(currentMonth)}
+          </Text>
+        )}
         style={themedStyles.calendar}
         theme={{
           backgroundColor: colors.background,
@@ -168,6 +206,13 @@ const getStyles = (colors: any) =>
     taskSection: {
       flex: 1,
       padding: 16,
+    },
+    customHeader: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.button,
+      textAlign: 'center',
+      marginVertical: 8,
     },
     heading: {
       fontSize: 20,
