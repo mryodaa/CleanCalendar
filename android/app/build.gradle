@@ -81,7 +81,7 @@ android {
 
     namespace "com.test"
     defaultConfig {
-        applicationId "com.test"
+        applicationId "com.cleaning"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
